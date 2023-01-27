@@ -23,6 +23,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 
 const Usuarios = require('./models/users.js');
+const { fork } = require('child_process');
 
 const yargs = require('yargs/yargs')(process.argv.slice(2));
 const args = yargs.default({ port: 8080 }).argv;
@@ -254,6 +255,18 @@ app.get('/info', (req, res) => {
   });
 });
 
+app.get('/api/randoms', (req, res) => {
+  let cantidad = req.query.cant || 100000;
+
+  let proceso = fork('./calculo.js');
+
+  proceso.send({ cantidad });
+
+  proceso.on('message', (msg) => {
+    const { data } = msg;
+    res.json(data);
+  });
+});
 //SOCKET
 io.on('connection', async (socket) => {
   console.log('Usuario conectado');
